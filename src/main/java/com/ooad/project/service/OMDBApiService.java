@@ -3,92 +3,60 @@ package com.ooad.project.service;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.ooad.project.domain.Movie;
-import org.apache.http.HttpClientConnection;
+import org.apache.http.HttpResponse;
 import org.apache.http.client.methods.CloseableHttpResponse;
 import org.apache.http.client.methods.HttpGet;
-import org.apache.http.client.protocol.HttpClientContext;
 import org.apache.http.client.utils.URIBuilder;
-import org.apache.http.conn.ConnectionPoolTimeoutException;
-import org.apache.http.conn.ConnectionRequest;
-import org.apache.http.conn.routing.HttpRoute;
 import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.impl.client.HttpClients;
-import org.apache.http.impl.conn.BasicHttpClientConnectionManager;
 import org.apache.http.util.EntityUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 
 import java.io.IOException;
 import java.net.URI;
 import java.net.URISyntaxException;
-import java.net.UnknownHostException;
 
 public class OMDBApiService {
 	@Autowired
-	private BasicHttpClientConnectionManager connectionManager;
-	@Autowired
-	private HttpClientContext context;
-	@Autowired
-	private HttpRoute httpRoute;
+	private ObjectMapper objectMapper;
 
+	/**
+	 * Calls the OMDB API service to retrieve movie information based on the given <code>Movie</code> object
+	 *
+	 * @param movie Movie to request information for
+	 *
+	 * @return      Full movie information
+	 */
 	public Movie callOMDBApi(Movie movie) {
-		HttpClientConnection connection = null;
-		ConnectionRequest request = connectionManager.requestConnection(httpRoute, null);
-		Movie fullMovie = new Movie();
+		CloseableHttpResponse httpResponse = null;
+		Movie fullMovie = null;
+
+		CloseableHttpClient httpClient = HttpClients.createDefault();
+
+		// adapt to request
+		HttpGet httpGet = adaptRequest(movie);
 
 		try {
-			CloseableHttpClient httpClient = HttpClients.createDefault();
-			HttpGet httpGet = createRequest(movie);
-			CloseableHttpResponse httpResponse = httpClient.execute(httpGet);
-			String response = EntityUtils.toString(httpResponse.getEntity());
-
-			ObjectMapper mapper = new ObjectMapper();
-			JsonNode rootNode = mapper.readTree(response);
-
-			fullMovie.setTitle(rootNode.at("/Title").asText());
-			fullMovie.setId(rootNode.at("/imdbID").asText());
-			fullMovie.setReleaseDate(rootNode.at("/Released").asText());
-
-//			// wait for up to 10 seconds
-//			connection = request.get(10, TimeUnit.SECONDS);
-//
-//			// check if the connection is open
-//			if (!connection.isOpen()) {
-//				// establish connection based on its route info
-//				connectionManager.connect(connection, httpRoute, 1000, context);
-//				// and mark it as route complete
-//				connectionManager.routeComplete(connection, httpRoute, context);
-//			}
-//
-//			// call service
-//			// TODO: implement service call
-//			HttpGet httpGet = createRequest("Rogue One");
-//			System.out.println(httpGet);
-//
-//			if (null != httpGet) {
-//				connection.sendRequestHeader(httpGet);
-//
-//				HttpResponse httpResponse = connection.receiveResponseHeader();
-//				response = EntityUtils.toString(httpResponse.getEntity());
-//				System.out.println(response);
-//			}
-		} catch (ConnectionPoolTimeoutException connectionPoolTimeoutException) {
-			connectionPoolTimeoutException.printStackTrace();
-		//} catch (HttpException httpException) {
-		//	httpException.printStackTrace();
-		} catch (UnknownHostException unknownHostException) {
-			System.out.println(unknownHostException);
-			//} catch (InterruptedException | ExecutionException | IOException ex) {
+			// call OMDB API
+			httpResponse = httpClient.execute(httpGet);
 		} catch(IOException ioException) {
 			ioException.printStackTrace();
-		} finally {
-			// release resources
-			//connectionManager.releaseConnection(connection, null, 1, TimeUnit.MINUTES);
 		}
+
+		// adapt from response
+		fullMovie = adaptResponse(httpResponse);
 
 		return fullMovie;
 	}
 
-	private HttpGet createRequest(Movie movie) {
+	/**
+	 * Creates an Http Get Request  to retrieve movie information
+	 *
+	 * @param movie Movie to create request for
+	 *
+	 * @return      Http Get Request for OMDB API
+	 */
+	private HttpGet adaptRequest(Movie movie) {
 		HttpGet httpGet = null;
 
 		try {
@@ -97,6 +65,7 @@ public class OMDBApiService {
 					.setHost("www.omdbapi.com")
 					.setParameter("i", movie.getId())
 					.setParameter("t", movie.getTitle())
+					.setParameter("tomatoes", Boolean.TRUE.toString())
 					.build();
 
 			httpGet = new HttpGet(uri);
@@ -105,5 +74,30 @@ public class OMDBApiService {
 		}
 
 		return httpGet;
+	}
+
+	/**
+	 * Adapts the <code>httpResponse</code> to a <code>Movie</code>
+	 *
+	 * @param httpResponse  OMDB API response to parse
+	 *
+	 * @return              Full Movie retrieved from OMDB API
+	 */
+	private Movie adaptResponse(HttpResponse httpResponse) {
+		Movie movie = new Movie();
+
+		if (null != httpResponse) {
+			try {
+				JsonNode rootNode = objectMapper.readTree(EntityUtils.toString(httpResponse.getEntity()));
+
+				movie.setTitle(rootNode.at("/Title").asText());
+				movie.setId(rootNode.at("/imdbID").asText());
+				movie.setReleaseDate(rootNode.at("/Released").asText());
+			} catch (IOException ioException) {
+				ioException.printStackTrace();
+			}
+		}
+
+		return movie;
 	}
 }
