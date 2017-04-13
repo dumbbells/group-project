@@ -14,7 +14,7 @@ public class SearchController {
 
 	@RequestMapping("/search")
 	public Movie search(@RequestBody Movie movie) {
-		Movie fullMovie = omdbApiService.callOMDBApi(movie);
+		Movie fullMovie = omdbApiService.process(movie);
 
 		return fullMovie;
 	}

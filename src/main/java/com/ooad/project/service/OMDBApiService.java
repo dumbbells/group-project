@@ -3,6 +3,7 @@ package com.ooad.project.service;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.ooad.project.domain.Movie;
+import com.ooad.project.domain.Review;
 import org.apache.http.HttpResponse;
 import org.apache.http.client.methods.CloseableHttpResponse;
 import org.apache.http.client.methods.HttpGet;
@@ -15,6 +16,9 @@ import org.springframework.beans.factory.annotation.Autowired;
 import java.io.IOException;
 import java.net.URI;
 import java.net.URISyntaxException;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
 
 public class OMDBApiService {
 	@Autowired
@@ -27,7 +31,7 @@ public class OMDBApiService {
 	 *
 	 * @return      Full movie information
 	 */
-	public Movie callOMDBApi(Movie movie) {
+	public Movie process(Movie movie) {
 		CloseableHttpResponse httpResponse = null;
 		Movie fullMovie = null;
 
@@ -90,14 +94,68 @@ public class OMDBApiService {
 			try {
 				JsonNode rootNode = objectMapper.readTree(EntityUtils.toString(httpResponse.getEntity()));
 
-				movie.setTitle(rootNode.at("/Title").asText());
+				movie.setActors(mapStringList(rootNode.at("/Actors")));
+				movie.setAwards(rootNode.at("/Awards").asText());
+				movie.setContentRating(rootNode.at("/Rated").asText());
+				movie.setContentType(rootNode.at("/Type").asText());
+				movie.setCountry(rootNode.at("/Country").asText());
+				movie.setDirectors(mapStringList(rootNode.at("/Director")));
+				movie.setGenres(mapStringList(rootNode.at("/Genre")));
 				movie.setId(rootNode.at("/imdbID").asText());
+				movie.setImdbRating(rootNode.at("/imdbRating").asDouble());
+				movie.setLanguage(rootNode.at("/Language").asText());
+				movie.setMetascore(rootNode.at("/Metascore").asDouble());
+				movie.setPlot(rootNode.at("/Plot").asText());
 				movie.setReleaseDate(rootNode.at("/Released").asText());
+				movie.setReviews(mapReviews(rootNode.at("/Ratings")));
+				movie.setRunTime(rootNode.at("/Runtime").asText());
+				movie.setTitle(rootNode.at("/Title").asText());
+				movie.setWriters(mapStringList(rootNode.at("/Writer")));
 			} catch (IOException ioException) {
 				ioException.printStackTrace();
 			}
 		}
 
 		return movie;
+	}
+
+	/**
+	 * Maps the actor values from the given <code>JsonNode</code> to
+	 * a list of <code>Strings</code>
+	 *
+	 * @param node    JsonNode to map values from
+	 */
+	private List<String> mapStringList(JsonNode node) {
+		// convert node to string
+		String stringList = node.asText();
+
+		// convert string to list
+		return new ArrayList<>(Arrays.asList(stringList.split(", ")));
+	}
+
+	/**
+	 * Maps the review values from the given <code>JsonNode</code> to
+	 * a list of <code>Reviews</code>
+	 *
+	 * @param reviewsNode   JsonNode to map review values from
+	 */
+	private List<Review> mapReviews(JsonNode reviewsNode) {
+		List<Review> reviews = null;
+
+		// make sure we have a review list
+		if (reviewsNode.isArray()) {
+			reviews = new ArrayList <>();
+
+			// add all review information to list
+			for (JsonNode reviewNode : reviewsNode) {
+				Review review = new Review();
+				review.setSource(reviewNode.at("/Source").asText());
+				review.setScore(reviewNode.at("/Value").asText());
+
+				reviews.add(review);
+			}
+		}
+
+		return reviews;
 	}
 }
