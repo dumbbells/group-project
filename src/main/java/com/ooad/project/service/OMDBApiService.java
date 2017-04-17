@@ -28,8 +28,7 @@ public class OMDBApiService {
 	 * Calls the OMDB API service to retrieve movie information based on the given <code>Movie</code> object
 	 *
 	 * @param movie Movie to request information for
-	 *
-	 * @return      Full movie information
+	 * @return Full movie information
 	 */
 	public Movie process(Movie movie) {
 		CloseableHttpResponse httpResponse = null;
@@ -43,7 +42,7 @@ public class OMDBApiService {
 		try {
 			// call OMDB API
 			httpResponse = httpClient.execute(httpGet);
-		} catch(IOException ioException) {
+		} catch (IOException ioException) {
 			ioException.printStackTrace();
 		}
 
@@ -57,8 +56,7 @@ public class OMDBApiService {
 	 * Creates an Http Get Request  to retrieve movie information
 	 *
 	 * @param movie Movie to create request for
-	 *
-	 * @return      Http Get Request for OMDB API
+	 * @return Http Get Request for OMDB API
 	 */
 	private HttpGet adaptRequest(Movie movie) {
 		HttpGet httpGet = null;
@@ -83,9 +81,8 @@ public class OMDBApiService {
 	/**
 	 * Adapts the <code>httpResponse</code> to a <code>Movie</code>
 	 *
-	 * @param httpResponse  OMDB API response to parse
-	 *
-	 * @return              Full Movie retrieved from OMDB API
+	 * @param httpResponse OMDB API response to parse
+	 * @return Full Movie retrieved from OMDB API
 	 */
 	private Movie adaptResponse(HttpResponse httpResponse) {
 		Movie movie = new Movie();
@@ -120,31 +117,17 @@ public class OMDBApiService {
 	}
 
 	/**
-	 * Maps the actor values from the given <code>JsonNode</code> to
-	 * a list of <code>Strings</code>
-	 *
-	 * @param node    JsonNode to map values from
-	 */
-	private List<String> mapStringList(JsonNode node) {
-		// convert node to string
-		String stringList = node.asText();
-
-		// convert string to list
-		return new ArrayList<>(Arrays.asList(stringList.split(", ")));
-	}
-
-	/**
 	 * Maps the review values from the given <code>JsonNode</code> to
 	 * a list of <code>Reviews</code>
 	 *
-	 * @param reviewsNode   JsonNode to map review values from
+	 * @param reviewsNode JsonNode to map review values from
 	 */
 	private List<Review> mapReviews(JsonNode reviewsNode) {
 		List<Review> reviews = null;
 
 		// make sure we have a review list
 		if (reviewsNode.isArray()) {
-			reviews = new ArrayList <>();
+			reviews = new ArrayList<>();
 
 			// add all review information to list
 			for (JsonNode reviewNode : reviewsNode) {
@@ -157,5 +140,19 @@ public class OMDBApiService {
 		}
 
 		return reviews;
+	}
+
+	/**
+	 * Maps the actor values from the given <code>JsonNode</code> to
+	 * a list of <code>Strings</code>
+	 *
+	 * @param node JsonNode to map values from
+	 */
+	private List<String> mapStringList(JsonNode node) {
+		// convert node to string
+		String stringList = node.asText();
+
+		// convert string to list
+		return new ArrayList<>(Arrays.asList(stringList.split(", ")));
 	}
 }
