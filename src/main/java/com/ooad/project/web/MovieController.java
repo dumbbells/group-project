@@ -16,7 +16,7 @@ public class MovieController {
 	}
 
 	@GetMapping("/id/{id}")
-	public Movie getByIMDBId(@PathVariable String id) {
+	public Movie getMovieByIMDBId(@PathVariable String id) {
 		Movie movie = new Movie();
 		movie.setId(id);
 
@@ -24,7 +24,7 @@ public class MovieController {
 	}
 
 	@GetMapping("/title/{title}")
-	public Movie getByTitle(@PathVariable String title) {
+	public Movie getMovieByTitle(@PathVariable String title) {
 		Movie movie = new Movie();
 		movie.setTitle(title);
 
