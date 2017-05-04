@@ -107,6 +107,8 @@ public class OMDBApiService {
 				movie.setReviews(mapReviews(rootNode.at("/Ratings")));
 				movie.setRunTime(rootNode.at("/Runtime").asText());
 				movie.setTitle(rootNode.at("/Title").asText());
+				movie.setPoster(rootNode.at("/Poster").asText());
+				movie.setYear(rootNode.at("/Year").asInt());
 				movie.setWriters(mapStringList(rootNode.at("/Writer")));
 			} catch (IOException ioException) {
 				ioException.printStackTrace();

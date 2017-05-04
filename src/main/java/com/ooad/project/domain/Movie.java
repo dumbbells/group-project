@@ -20,6 +20,12 @@ public class Movie {
 	private String runTime;
 	private String title;
 	private List<String> writers;
+	private String poster;
+	private int year;
+		
+	public int getYear(){
+			return year;
+	}
 
 	public List<String> getActors() {
 		return actors;
@@ -87,6 +93,17 @@ public class Movie {
 
 	public List<String> getWriters() {
 		return writers;
+	}
+	public String getPoster() {
+		return poster;
+	}
+	
+	public void setYear(int year){
+		this.year = year; 
+	}
+	
+	public void setPoster(String poster) {
+		this.poster = poster;
 	}
 
 	public void setActors(List<String> actors) {

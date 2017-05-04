@@ -1,21 +1,20 @@
 <!DOCTYPE html>
 
 <html>
-   <head></head>
-   
-   <link   rel="stylesheet" href="style.css">
-   <script src="scripts.js"></script>
-
+   <head>
+     <title>Movie Memoirs</title>
+   </head>
    <body>
+
+     <link   rel="stylesheet" href="style.css">
+     <script src="DrawMovie.js"></script>
+
       <form action="http://localhost:8080">
          <input type="text" name="title"></input>
          <input type="submit" value="Search By Title"></input>
       </form>
-       
+
       <p id="movie_data"></p> <script>fillId_MovieData("movie_data");</script>
-      
-      
    </body>
 
 </html>
-
